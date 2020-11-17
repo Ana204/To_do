@@ -17,7 +17,7 @@ export default function App() {
 
       ]);
       const [open, setOpen] = useState(false);
-
+      const [input, setInput] = useState('');
   return (
     <SafeAreaView style = {styles.container}>
       <StatusBar backgroundColor = '#171d31' barStyle = "light-content" />
@@ -44,19 +44,21 @@ export default function App() {
             <Text style = {styles.modalTitle}> Nova Tarefa </Text>
           </View>
 
-          <View style = {styles.modalBody}>
+          <Animatable.View style = {styles.modalBody} animation = "fadeInUp" useNativeDriver>
           <TextInput
           multiline = {true}
           placeholderTextColor = "#747474"
           autoCorrect = {false}
           placeholder = "O que você precisa fazer hoje?"
           style = {styles.input}
+          value = {input}
+          onChangeText = {(texto) => setInput(texto)}
           />
 
           <TouchableOpacity style = {styles.handleAdd}>
             <Text style = {styles.handleAddText}> Cadastrar </Text>
           </TouchableOpacity>
-        </View>
+        </Animatable.View>
 
         </SafeAreaView>
      </Modal>
