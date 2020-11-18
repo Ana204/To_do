@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import { View,StyleSheet, Text, SafeAreaView, StatusBar, TouchableOpacity, FlatList, Modal, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Ionicons} from '@expo/vector-icons'
 import TaskList from './src/components/TaskList/Index';
 import * as Animatable from 'react-native-animatable';
@@ -8,16 +9,55 @@ const AnimatedBtn = Animatable.createAnimatableComponent(TouchableOpacity);
 
 export default function App() {
 
-      const [task, setTask] = useState([
-        {key: 1, task: 'Comprar pão'},
-        {key: 2, task: 'Comer'},
-        {key: 3, task: 'Cagar'},
-        {key: 4, task: 'xixi'},
-        {key: 5, task: 'limpar'},
-
-      ]);
+      const [task, setTask] = useState([]);
       const [open, setOpen] = useState(false);
       const [input, setInput] = useState('');
+
+
+        //armarzenar as tarefas 
+        useEffect(() => {
+          
+         async function loadTasks(){
+            const taskStorage = await AsyncStorage.getItem('@task')
+
+            if(taskStorage){
+              setTask(JSON.parse(taskStorage));
+            }
+          }
+
+          loadTasks();
+        }, []);
+
+        //Função de monitoramento, caso tenha sofrido alguma alteração
+
+        useEffect(() => {
+          async function saveTasks(){
+            await AsyncStorage.setItem('@task', JSON.stringify(task));
+          }
+
+          saveTasks();
+        }, [task]);
+
+      // função para listar minhas tarefas
+      function handleAdd(){
+        if (input === '') return;
+
+        const data = {
+          key: input,
+          task: input
+        }
+
+        setTask([...task, data]);
+        setOpen(false);
+        setInput('');
+        
+      }
+        //Detelar tarefas
+      const handleDelete = useCallback((data) => {
+        const find = task.filter(r => r.key !== data.key);
+        setTask(find); 
+      })
+
   return (
     <SafeAreaView style = {styles.container}>
       <StatusBar backgroundColor = '#171d31' barStyle = "light-content" />
@@ -31,7 +71,7 @@ export default function App() {
        showsHorizontalScrollIndicator = {false}
        data = {task}
        keyExtractor = { (item) => String(item.key)}
-       renderItem = { ({item}) => <TaskList data = {item} /> }
+       renderItem = { ({item}) => <TaskList data = {item} handleDelete = {handleDelete}/> }
       />
 
      <Modal animationType = "slide" transparent = {false} visible = {open}>
@@ -55,7 +95,7 @@ export default function App() {
           onChangeText = {(texto) => setInput(texto)}
           />
 
-          <TouchableOpacity style = {styles.handleAdd}>
+          <TouchableOpacity style = {styles.handleAdd} onPress={handleAdd}>
             <Text style = {styles.handleAddText}> Cadastrar </Text>
           </TouchableOpacity>
         </Animatable.View>
